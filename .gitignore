@@ -132,3 +132,6 @@ dmypy.json
 eurovision-dataset/
 
 esc-env/
+
+# ds_store
+.DS_Store
