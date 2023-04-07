@@ -1,53 +1,34 @@
-country,country_sn,countries_similar,countries_similar_ln,points_culturally_similar
-Switzerland,ch,"['de', 'be', 'at', 'lu', 'es']","['Germany', 'Belgium', 'Austria', 'Luxembourg', 'Spain']",194
-Netherlands,nl,"['lu', 'fi', 'gb', 'se', 'no']","['Luxembourg', 'Finland', 'United Kingdom', 'Sweden', 'Norway']",351
-Belgium,be,"['lu', 'es', 'ch', 'at', 'de']","['Luxembourg', 'Spain', 'Switzerland', 'Austria', 'Germany']",226
-Germany,de,"['be', 'lu', 'ch', 'at', 'es']","['Belgium', 'Luxembourg', 'Switzerland', 'Austria', 'Spain']",292
-France,fr,"['be', 'de', 'lu', 'ch', 'es']","['Belgium', 'Germany', 'Luxembourg', 'Switzerland', 'Spain']",202
-Luxembourg,lu,"['de', 'be', 'fi', 'gb', 'es']","['Germany', 'Belgium', 'Finland', 'United Kingdom', 'Spain']",0
-Italy,it,"['gr', 'ie', 'tr', 'sk', 'pl']","['Greece', 'Ireland', 'Turkey', 'Slovakia', 'Poland']",127
-Denmark,dk,"['at', 'nl', 'no', 'de', 'lu']","['Austria', 'Netherlands', 'Norway', 'Germany', 'Luxembourg']",505
-United Kingdom,gb,"['be', 'ie', 'es', 'lu', 'il']","['Belgium', 'Ireland', 'Spain', 'Luxembourg', 'Israel']",160
-Austria,at,"['de', 'be', 'lu', 'gb', 'es']","['Germany', 'Belgium', 'Luxembourg', 'United Kingdom', 'Spain']",269
-Sweden,se,"['nl', 'gb', 'be', 'il', 'lu']","['Netherlands', 'United Kingdom', 'Belgium', 'Israel', 'Luxembourg']",604
-Monaco,mc,[],[],0
-Norway,no,"['nl', 'fi', 'dk', 'lu', 'se']","['Netherlands', 'Finland', 'Denmark', 'Luxembourg', 'Sweden']",669
-Yugoslavia,yu,[],[],0
-Spain,es,"['lu', 'ie', 'be', 'gb', 'de']","['Luxembourg', 'Ireland', 'Belgium', 'United Kingdom', 'Germany']",105
-Finland,fi,"['ee', 'de', 'lu', 'nl', 'cz']","['Estonia', 'Germany', 'Luxembourg', 'Netherlands', 'Czech Republic']",243
-Portugal,pt,"['il', 'hr', 'lu', 'es', 'si']","['Israel', 'Croatia', 'Luxembourg', 'Spain', 'Slovenia']",242
-Ireland,ie,"['gb', 'es', 'cy', 'lu', 'il']","['United Kingdom', 'Spain', 'Cyprus', 'Luxembourg', 'Israel']",255
-Malta,mt,[],[],0
-Israel,il,"['gb', 'ie', 'be', 'pt', 'si']","['United Kingdom', 'Ireland', 'Belgium', 'Portugal', 'Slovenia']",305
-Greece,gr,"['cy', 'it', 'tr', 'ru', 'ie']","['Cyprus', 'Italy', 'Turkey', 'Russia', 'Ireland']",568
-Turkey,tr,"['it', 'gr', 'pt', 'pl', 'si']","['Italy', 'Greece', 'Portugal', 'Poland', 'Slovenia']",71
-Morocco,ma,[],[],0
-Cyprus,cy,"['gr', 'ie', 'gb', 'es', 'il']","['Greece', 'Ireland', 'United Kingdom', 'Spain', 'Israel']",627
-Iceland,is,"['de', 'dk', 'ch', 'at', 'lu']","['Germany', 'Denmark', 'Switzerland', 'Austria', 'Luxembourg']",239
-Croatia,hr,"['de', 'gb', 'pt', 'ru', 'pl']","['Germany', 'United Kingdom', 'Portugal', 'Russia', 'Poland']",134
-Bosnia & Herzegovina,ba,[],[],0
-Slovenia,si,"['pt', 'il', 'be', 'lu', 'es']","['Portugal', 'Israel', 'Belgium', 'Luxembourg', 'Spain']",133
-Poland,pl,"['hr', 'ie', 'it', 'sk', 'ro']","['Croatia', 'Ireland', 'Italy', 'Slovakia', 'Romania']",162
-Hungary,hu,"['lv', 'be', 'il', 'hr', 'si']","['Latvia', 'Belgium', 'Israel', 'Croatia', 'Slovenia']",287
-Russia,ru,"['lv', 'gr', 'ua', 'sk', 'cz']","['Latvia', 'Greece', 'Ukraine', 'Slovakia', 'Czech Republic']",608
-Slovakia,sk,"['pl', 'ie', 'ru', 'cz', 'es']","['Poland', 'Ireland', 'Russia', 'Czech Republic', 'Spain']",7
-Romania,ro,"['pl', 'ua', 'ru', 'sk', 'cz']","['Poland', 'Ukraine', 'Russia', 'Slovakia', 'Czech Republic']",155
-Estonia,ee,"['de', 'fi', 'lu', 'ru', 'es']","['Germany', 'Finland', 'Luxembourg', 'Russia', 'Spain']",333
-Lithuania,lt,[],[],0
-North Macedonia,mk,[],[],0
-Latvia,lv,"['hr', 'gr', 'ru', 'hu', 'pl']","['Croatia', 'Greece', 'Russia', 'Hungary', 'Poland']",165
-Ukraine,ua,"['ru', 'ro', 'cz', 'pl', 'il']","['Russia', 'Romania', 'Czech Republic', 'Poland', 'Israel']",585
-Serbia & Montenegro,cs,[],[],0
-Albania,al,[],[],0
-Andorra,Andorra,[],[],0
-Belarus,by,[],[],0
-Moldova,md,[],[],0
-Bulgaria,bg,"['ie', 'gb', 'pl', 'ru', 'ee']","['Ireland', 'United Kingdom', 'Poland', 'Russia', 'Estonia']",278
-Armenia,am,[],[],0
-Serbia,rs,[],[],0
-Georgia,ge,[],[],0
-Montenegro,me,[],[],0
-Czech Republic,cz,"['sk', 'ru', 'es', 'fi', 'lu']","['Slovakia', 'Russia', 'Spain', 'Finland', 'Luxembourg']",117
-Azerbaijan,az,[],[],0
-San Marino,sm,[],[],0
-Australia,au,[],[],0
+"","country","country_sn","countries_similar","points_culturally_similar"
+"1","Switzerland","ch","de be at lu es",194
+"2","Netherlands","nl","lu fi gb se no",351
+"3","Belgium","be","lu es ch at de",226
+"4","Germany","de","be lu ch at es",292
+"5","France","fr","be de lu ch es",202
+"6","Luxembourg","lu","de be fi gb es",0
+"7","Italy","it","gr ie tr sk pl",127
+"8","Denmark","dk","at nl no de lu",505
+"9","United Kingdom","gb","be ie es lu il",160
+"10","Austria","at","de be lu gb es",269
+"11","Sweden","se","nl gb be il lu",604
+"12","Norway","no","nl fi dk lu se",669
+"13","Spain","es","lu ie be gb de",105
+"14","Finland","fi","ee de lu nl cz",243
+"15","Portugal","pt","il hr lu es si",242
+"16","Ireland","ie","gb es cy lu il",255
+"17","Israel","il","gb ie be pt si",305
+"18","Greece","gr","cy it tr ru ie",568
+"19","Turkey","tr","it gr pt pl si",71
+"20","Cyprus","cy","gr ie gb es il",627
+"21","Iceland","is","de dk ch at lu",239
+"22","Croatia","hr","de gb pt ru pl",134
+"23","Slovenia","si","pt il be lu es",133
+"24","Poland","pl","hr ie sk ro cz",139
+"25","Hungary","hu","lv be il hr si",287
+"26","Russia","ru","lv gr ua sk cz",608
+"27","Slovakia","sk","pl ru ie cz es",7
+"28","Romania","ro","pl ua ru sk cz",155
+"29","Estonia","ee","de fi lu ru es",333
+"30","Latvia","lv","hr gr ru hu pl",165
+"31","Ukraine","ua","ru ro cz pl il",585
+"32","Bulgaria","bg","ie gb pl ru ee",278
+"33","Czech Republic","cz","sk ru es fi lu",117

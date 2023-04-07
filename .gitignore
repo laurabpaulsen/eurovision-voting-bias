@@ -135,3 +135,8 @@ esc-env/
 
 # ds_store
 .DS_Store
+
+# r files
+.Rhistory
+.Rapp.history
+.RData

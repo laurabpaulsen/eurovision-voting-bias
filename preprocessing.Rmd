@@ -7,16 +7,16 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse)
+pacman::p_load(tidyverse, testit)
 ```
 
 # Loading in data
 
 ```{r}
-votes <- read_csv("data/votes.csv")
-cultural <- read_csv2("data/cultural_similarity.csv")
-contestants <- read_csv("data/contestants.csv")
-participants <- read_csv("data/shortname_mapping.csv")
+votes <- read_csv("data/votes.csv", show_col_types = FALSE)
+cultural <- read_csv2("data/cultural_similarity.csv", show_col_types = FALSE)
+contestants <- read_csv("data/contestants.csv", show_col_types = FALSE)
+participants <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
 ```
 
 ## Subsetting votes to specific years
@@ -25,15 +25,41 @@ participants <- read_csv("data/shortname_mapping.csv")
 votes <- votes %>% filter(year >= 2000) 
 ```
 
+
+
 # Preparing the data frame
+
+## Functions
+```{r}
+points_from_neighbours <- function(country, neighbours, data) {
+  
+  # get the points given to the input country
+  points_received <- data %>% filter(to_country_id == country)
+    
+  # get the points given by the neighbours
+  points <- points_received %>% filter(from_country_id %in% neighbours)
+  
+  # get sum 
+  points_sum <- sum(points$total_points)
+
+}
+
+return_shortname <- function(longname, mapping_data) {
+  shortname <- mapping_data[which(mapping_data$country == longname), 1]
+  
+  shortname[1,1]
+}
+```
+
+## Main
 
 ```{r}
 # looping over all participants
-df <- 
+data <- tibble()
 
-for(i in 5:10){
+for(i in 1:length(participants$country)){
   country <- participants$country[i]
-  country
+  country_shortname <- participants$short_name[i]
   
   # looking in both country columns for the given country
   cult1 <- cultural %>% filter(country1 == country)
@@ -43,8 +69,27 @@ for(i in 5:10){
   # adding the two data frames together
   cult <- rbind(cult1, cult2)
   
-  # finding the unique values
+  # sort by index value
+  cult <- cult[order(cult$index, decreasing=TRUE),]
   
+  # get the 5 most culturally similar countries
+  countries <- unique(c(cult$country1[1:5], cult$country2[1:5]))
+  
+  # remove the country it self
+  neighbours <- countries[!countries == country]
+  
+  # convert neighbours to shortname
+  neighbours <- sapply(neighbours, FUN=return_shortname, mapping_data = participants)
+
+  # points from similar countries
+  points <- points_from_neighbours(country_shortname, neighbours, votes)
+
+  
+  tmp_data <- tibble(country = country, 
+                     country_sn = country_shortname, 
+                     countries_similar = paste(neighbours, collapse = ' ', sep = ','),
+                     points_culturally_similar = points
+                     )
   
   # appending the data frame unless i == 1
   if(i==1){
@@ -54,16 +99,11 @@ for(i in 5:10){
     data <- bind_rows(data, tmp_data)
   }
 }
-```
 
+# remove rows with NA
+data <- data %>% filter(countries_similar != 'NA')
 
-```{r}
-cult1 = cultural %>% filter(country1 == 'Austria')
-
-un = c(unique(cult1$country2), unique(cult1$country1))
-
-un
-
-unique(un)
+# save to csv
+write.csv(data, "data/votes_cultural_similarity.csv")
 ```
 
