@@ -1,34 +1,34 @@
-"","country","country_sn","countries_similar","points_culturally_similar"
-"1","Switzerland","ch","de be at lu es",194
-"2","Netherlands","nl","lu fi gb se no",351
-"3","Belgium","be","lu es ch at de",226
-"4","Germany","de","be lu ch at es",292
-"5","France","fr","be de lu ch es",202
-"6","Luxembourg","lu","de be fi gb es",0
-"7","Italy","it","gr ie tr sk pl",127
-"8","Denmark","dk","at nl no de lu",505
-"9","United Kingdom","gb","be ie es lu il",160
-"10","Austria","at","de be lu gb es",269
-"11","Sweden","se","nl gb be il lu",604
-"12","Norway","no","nl fi dk lu se",669
-"13","Spain","es","lu ie be gb de",105
-"14","Finland","fi","ee de lu nl cz",243
-"15","Portugal","pt","il hr lu es si",242
-"16","Ireland","ie","gb es cy lu il",255
-"17","Israel","il","gb ie be pt si",305
-"18","Greece","gr","cy it tr ru ie",568
-"19","Turkey","tr","it gr pt pl si",71
-"20","Cyprus","cy","gr ie gb es il",627
-"21","Iceland","is","de dk ch at lu",239
-"22","Croatia","hr","de gb pt ru pl",134
-"23","Slovenia","si","pt il be lu es",133
-"24","Poland","pl","hr ie sk ro cz",139
-"25","Hungary","hu","lv be il hr si",287
-"26","Russia","ru","lv gr ua sk cz",608
-"27","Slovakia","sk","pl ru ie cz es",7
-"28","Romania","ro","pl ua ru sk cz",155
-"29","Estonia","ee","de fi lu ru es",333
-"30","Latvia","lv","hr gr ru hu pl",165
-"31","Ukraine","ua","ru ro cz pl il",585
-"32","Bulgaria","bg","ie gb pl ru ee",278
-"33","Czech Republic","cz","sk ru es fi lu",117
+"","country","country_sn","countries_similar","points_cult_similar_jury","points_cult_similar_tele"
+"1","Switzerland","ch","de be at lu es",26,37
+"2","Netherlands","nl","lu fi gb se no",17.25,8.25
+"3","Belgium","be","lu es ch at de",16,14.5
+"4","Germany","de","be lu ch at es",10,8.25
+"5","France","fr","be de lu ch es",10,14.5
+"6","Luxembourg","lu","de be fi gb es",NA,NA
+"7","Italy","it","gr ie tr sk pl",4.75,10.5
+"8","Denmark","dk","at nl no de lu",9.33333333333333,13.3333333333333
+"9","United Kingdom","gb","be ie es lu il",4.25,5.25
+"10","Austria","at","de be lu gb es",19.3333333333333,6.66666666666667
+"11","Sweden","se","nl gb be il lu",25.5,8
+"12","Norway","no","nl fi dk lu se",9.33333333333333,26
+"13","Spain","es","lu ie be gb de",2.25,3
+"14","Finland","fi","ee de lu nl cz",5,10
+"15","Portugal","pt","il hr lu es si",21.5,21
+"16","Ireland","ie","gb es cy lu il",8,11
+"17","Israel","il","gb ie be pt si",9,6
+"18","Greece","gr","cy it tr ru ie",17,12
+"19","Turkey","tr","it gr pt pl si",NA,NA
+"20","Cyprus","cy","gr ie gb es il",20,18.5
+"21","Iceland","is","de dk ch at lu",0,12
+"22","Croatia","hr","de gb pt ru pl",2,7
+"23","Slovenia","si","pt il be lu es",5.5,0
+"24","Poland","pl","hr ie sk ro cz",0.5,14
+"25","Hungary","hu","lv be il hr si",7.66666666666667,9
+"26","Russia","ru","lv gr ua sk cz",16.5,38
+"27","Slovakia","sk","pl ru ie cz es",NA,NA
+"28","Romania","ro","pl ua ru sk cz",0,16
+"29","Estonia","ee","de fi lu ru es",4.5,12.5
+"30","Latvia","lv","hr gr ru hu pl",17,6
+"31","Ukraine","ua","ru ro cz pl il",9.33333333333333,30
+"32","Bulgaria","bg","ie gb pl ru ee",26.6666666666667,18.3333333333333
+"33","Czech Republic","cz","sk ru es fi lu",5.66666666666667,5.66666666666667

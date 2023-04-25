@@ -22,7 +22,7 @@ participants <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
 ## Subsetting votes to specific years
 
 ```{r}
-votes <- votes %>% filter(year >= 2000) 
+votes <- votes %>% filter(year >= 2016) %>% filter(round == "final")
 ```
 
 
@@ -35,13 +35,17 @@ points_from_neighbours <- function(country, neighbours, data) {
   
   # get the points given to the input country
   points_received <- data %>% filter(to_country_id == country)
+  
+  n_years <- length(unique(points_received$year))
     
   # get the points given by the neighbours
   points <- points_received %>% filter(from_country_id %in% neighbours)
   
   # get sum 
-  points_sum <- sum(points$total_points)
-
+  points_sum_jury <- sum(points$jury_points) / n_years
+  points_sum_tele <- sum(points$tele_points) / n_years
+  
+  cbind(points_sum_jury, points_sum_tele)
 }
 
 return_shortname <- function(longname, mapping_data) {
@@ -88,7 +92,8 @@ for(i in 1:length(participants$country)){
   tmp_data <- tibble(country = country, 
                      country_sn = country_shortname, 
                      countries_similar = paste(neighbours, collapse = ' ', sep = ','),
-                     points_culturally_similar = points
+                     points_cult_similar_jury = points[1],
+                     points_cult_similar_tele = points[2]
                      )
   
   # appending the data frame unless i == 1
