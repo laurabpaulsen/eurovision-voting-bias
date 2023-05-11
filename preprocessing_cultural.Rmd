@@ -116,8 +116,9 @@ data$jury_avg_nb <- 0
 data$tele_avg_nb <- 0
 
 
+
+
 for(i in 1:nrow(data)){
-  country_shortname <- data[i,]$country_sn
   neighbours <- data[i,]$countries_similar
   neighbours <- strsplit(neighbours, " ")[[1]]
   
