@@ -9,85 +9,161 @@ output: html_document
 pacman::p_load(raster, sf, tidyverse)
 ```
 
+# Moran's I
+The code in this section is made with inspiration from the following tutorial: https://mgimond.github.io/Spatial/spatial-autocorrelation-in-r.html
 
+## Load in needed data
 ```{r}
-average_nbh_points <- function(data){
-  for(i in 1:nrow(data)){
-    neighbours <- data[i,]$countries_similar
-    neighbours <- strsplit(neighbours, " ")[[1]]
-    
-    points_tele <- data[i,]$points_nb_tele
-    points_jury <- data[i,]$points_nb_jury
-    
-    neighbourhood_votes <- data %>% filter(country_sn %in% neighbours)
-    
-    tele_votes <- mean(c(neighbourhood_votes$points_nb_tele, points_tele), na.rm = T)
-    jury_votes <- mean(c(neighbourhood_votes$points_nb_jury, points_jury), na.rm = T)
-    data[i,]$jury_avg_nb <- jury_votes
-    data[i,]$tele_avg_nb <- tele_votes
-    
-    return(data)
-  }
-  
-}
-```
-
-```{r}
-
 cult <- read_csv("data/votes_cultural_similarity.csv", show_col_types = FALSE)
 geo <- read_csv("data/votes_geo_nb.csv", show_col_types = FALSE)
 votes <- read_csv("data/votes.csv", show_col_types = FALSE)
 name_map <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
 ```
 
-
-## Linear regression (Moran's I coefficient)
+## Define functions
 ```{r}
-M <- lm(geo$jury_avg_nb ~ geo$points_nb_jury)
-plot(geo$jury_avg_nb ~ geo$points_nb_jury, pch=20, asp=1, las=1)
-```
-
-## Pseudo p-value
-```{r}
-n <- 599L   # Define the number of simulations
-I.r <- vector(length=n)  # Create an empty vector
-
-tmp_data <- geo
-
-
-for (i in 1:n){
-  # Randomly shuffle income values
-  x <- sample(geo$points_nb_jury, replace=FALSE)
-  tmp_data$points_nb_jury <- x
+average_nbh_points <- function(data, points_col) {
+  data$avg_nb <- 0
   
-  # Compute new set of lagged values
-  tmp_data <- average_nbh_points(tmp_data)
-  x.lag <- tmp_data$jury_avg_nb
+  for (i in 1:nrow(data)) {
+    neighbours <- data[i,]$countries_similar
+    neighbours <- strsplit(neighbours, " ")[[1]]
+    
+    # the points the country itself got
+    points <- data[i,][[points_col]]
+    
+    # points the neighbours got
+    neighbourhood_votes <- data %>% filter(country_sn %in% neighbours)
+    
+    data[i,]$avg_nb <- mean(c(neighbourhood_votes[[points_col]], points), na.rm = TRUE)
+  }
   
-  # Compute the regression slope and store its value
-  M.r    <- lm(x.lag ~ x)
-  I.r[i] <- coef(M.r)[2]
+  return(data)
 }
+
+
+simulate <- function(data, points_col, n){
+  # Create an empty vector
+  I.r <- vector(length=n) 
+  
+  tmp_data <- data
+  
+  for (i in 1:n){
+    # Randomly shuffle income values
+    x <- sample(data[[points_col]], replace=FALSE)
+    
+    tmp_data[[points_col]] <- x
+    
+    # Compute new set of lagged values
+    tmp_data <- average_nbh_points(tmp_data, points_col)
+    x.lag <- tmp_data$avg_nb
+    
+    # Compute the regression slope and store its value
+    M.r    <- lm(x.lag ~ x)
+    I.r[i] <- coef(M.r)[2]
+  }
+  
+  return(I.r)
+}
+
+
+pseudo_pval <- function(beta, simulated_betas, n){
+  N_greater <- sum(beta > simulated_betas)
+  p_value <- min(N_greater + 1, n + 1 - N_greater) / (n + 1)
+  
+  return(p_value)
+}
+
 ```
 
+## Calculating Moran's I and pseudo p-value
+### Jury - Geographical neighbours
 ```{r}
+point_column <- "points_nb_jury"
+average_column <- "jury_avg_nb"
+data1 <- geo
+n_sim <- 500
+
+M <- lm(data1[[average_column]] ~ data1[[point_column]])
+plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
+
+simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
+
 # Plot the histogram of simulated Moran's I values
 # then add our observed Moran's I value to the plot
-hist(I.r, main=NULL, xlab="Moran's I", las=1)
+hist(simulated_correlations, main=NULL, xlab="Moran's I", las=1)
 abline(v=coef(M)[2], col="red")
+
+p <- pseudo_pval(coef(M)[2], simulated_correlations, n_sim)
+paste("Moran's I coef:", coef(M)[2])
+paste("psuedo_pval:", p)
 ```
 
+### Tele - Geographical neighbours
 ```{r}
-N.greater <- sum(coef(M)[2] > I.r)
-p <- min(N.greater + 1, n + 1 - N.greater) / (n + 1)
-p
+point_column <- "points_nb_tele"
+average_column <- "tele_avg_nb"
+data1 <- geo
+n_sim <- 500
+
+M <- lm(data1[[average_column]] ~ data1[[point_column]])
+plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
+
+simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
+
+# Plot the histogram of simulated Moran's I values
+# then add our observed Moran's I value to the plot
+hist(simulated_correlations, main=NULL, xlab="Moran's I", las=1)
+abline(v=coef(M)[2], col="red")
+
+p <- pseudo_pval(coef(M)[2], simulated_correlations, n_sim)
+paste("Moran's I coef:", coef(M)[2])
+paste("psuedo_pval:", p)
 ```
 
+### Jury - Cultural neighbours
+```{r}
+point_column <- "points_cult_similar_jury"
+average_column <- "jury_avg_nb"
+data1 <- cult
+n_sim <- 500
 
+M <- lm(data1[[average_column]] ~ data1[[point_column]])
+plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
 
+simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
 
+# Plot the histogram of simulated Moran's I values
+# then add our observed Moran's I value to the plot
+hist(simulated_correlations, main=NULL, xlab="Moran's I", las=1)
+abline(v=coef(M)[2], col="red")
 
+p <- pseudo_pval(coef(M)[2], simulated_correlations, n_sim)
 
+paste("Moran's I coef:", coef(M)[2])
+paste("psuedo_pval:", p)
+```
+### Tele - Cultural neighbours
+```{r}
+point_column <- "points_cult_similar_tele"
+average_column <- "tele_avg_nb"
+data1 <- cult
+n_sim <- 500
+
+M <- lm(data1[[average_column]] ~ data1[[point_column]])
+plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
+
+simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
+
+# Plot the histogram of simulated Moran's I values
+# then add our observed Moran's I value to the plot
+hist(simulated_correlations, main=NULL, xlab="Moran's I", las=1)
+abline(v=coef(M)[2], col="red")
+
+p <- pseudo_pval(coef(M)[2], simulated_correlations, n_sim)
+paste("Moran's I coef:", coef(M)[2])
+paste("psuedo_pval:", p)
+```
 # PLOTS
 ```{r}
 library(tmap)
