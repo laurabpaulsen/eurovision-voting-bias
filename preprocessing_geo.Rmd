@@ -1,0 +1,193 @@
+---
+title: "analysis"
+author: "Daniel Blumenkranz"
+date: '2023-03-27'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(raster)
+library(sf)
+library(tidyverse)
+library(spdep)
+```
+
+Load data
+```{r}
+countries <- getData('countries')
+votes <- read_csv("data/votes.csv")
+name_map <- read_csv("data/shortname_mapping.csv")
+```
+
+Preprocess data
+```{r}
+# make sf obejct
+countries <- st_transform(st_as_sf(countries), crs = 3035) #other european epsg: 19986, 3035 
+
+# rename some countries
+countries$NAME_ENGLISH <- gsub("Macedonia", "North Macedonia", countries$NAME_ENGLISH)
+countries$NAME_ENGLISH <- gsub("\\band\\b", "&", countries$NAME_ENGLISH)
+
+# rename country short names to country names
+votes <- votes %>% 
+  left_join(name_map, by = c("from_country_id"="short_name")) %>% 
+  left_join(name_map, by = c("to_country_id"="short_name")) %>% 
+  mutate(from_country = country.x) %>% mutate(to_country = country.y) %>% 
+  select(-c(country.x, country.y))
+
+# restrict data to selected years
+votes <- votes[votes$year >= 2016,]
+
+# isolate countries that have participated in esc
+participants <- countries %>% filter(countries$NAME_ENGLISH %in% votes$from_country)
+rm(countries)
+plot(st_geometry(participants))
+
+# Which countries have participated in esc which don't exist anymore?
+#nonex_countries <- name_map$country[!name_map$country %in% europe$NAME_ENGLISH]
+
+# filter nonexisting countries away
+# votes <- votes %>% filter(!(from_country %in% nonex_countries) | !(to_country %in% nonex_countries)) %>% 
+#   select(year, from_country, to_country)
+
+# we should probably divide neighbour votes with number of times participated
+```
+
+Find neighborhoods
+```{r}
+participants_no_aus <- participants[participants_simp$NAME_ENGLISH != "Australia",]
+
+# METHOD 1: distance bands from country centroids
+coords <- st_centroid(st_geometry(participants_no_aus))
+nb <- dnearneigh(coords, d1=0, d2=500000)
+
+# for more easy interpretation substitute integers with country names
+names(nb) <- participants_no_aus$NAME_ENGLISH
+
+int2name <- function(x){
+  countries <- participants_no_aus$NAME_ENGLISH[x]
+  return(countries)
+}
+nb <- lapply(nb, FUN = int2name)
+
+# METHOD 2: manual creation of nb list. Buffers around countries. manually because dnearneigh only takes point coordiantes which makes it difficult to define a distance band that is equal for all countries (500km is not much for the centroid of Russia but very much for e.g. Montenegro)
+# simplify features
+participants_simp <- st_simplify(participants_no_aus, preserveTopology = FALSE, dTolerance = 50000)
+
+# calculate buffers
+buffer <- st_buffer(participants_simp, dist=100000)
+
+# plot
+plot(st_geometry(buffer), col="purple")
+plot(st_geometry(participants_simp), add=TRUE)
+
+# which countries intersect which each buffer?
+nb2 <- st_intersects(buffer, participants_simp)
+
+# remove each buffer's own country
+for (i in 1:length(nb2)){
+  nb2[[i]] <- nb2[[i]][nb2[[i]] != i]
+}
+
+# for more easy interpretation substitute integers with country names
+names(nb2) <- participants_no_aus$NAME_ENGLISH
+
+int2name <- function(x){
+  countries <- participants_no_aus$NAME_ENGLISH[x]
+  return(countries)
+}
+nb2 <- lapply(nb2, FUN = int2name)
+
+# assign weight to neighbors - won't work because nb2 is wrong class :(
+#nb2w <- nb2listw(nb2, style = "W", zero.policy = T)
+
+
+```
+
+```{r}
+points_from_neighbours <- function(country, neighbours, data) {
+  
+  # get the points given to the input country
+  points_received <- data %>% filter(to_country_id == country)
+  
+  n_years <- length(unique(points_received$year))
+    
+  # get the points given by the neighbours
+  points <- points_received %>% filter(from_country_id %in% neighbours)
+  
+  # count number of neighbours
+  n_nbs <- length(neighbours)
+  
+  # get sum 
+  points_sum_jury <- sum(points$jury_points) / n_years / n_nbs
+  points_sum_tele <- sum(points$tele_points) / n_years / n_nbs
+  
+  cbind(points_sum_jury, points_sum_tele)
+}
+
+return_shortname <- function(longname, mapping_data) {
+  shortname <- mapping_data[which(mapping_data$country == longname), 1]
+  
+  shortname[1,1]
+}
+```
+
+```{r}
+country_names <- names(nb2)
+
+for(i in 1:length(nb2)){
+  country <- country_names[i]
+  country_shortname <- return_shortname(country, name_map)$short_name[1]
+  
+  neighbours <- nb2[[i]]
+  
+  neighbours <- sapply(neighbours, FUN=return_shortname, mapping_data = name_map)
+  
+  points <- points_from_neighbours(country_shortname, neighbours, votes)
+  
+  tmp_data <- tibble(country = country, 
+                     country_sn = country_shortname, 
+                     countries_similar = paste(neighbours, collapse = ' ', sep = ','),
+                     points_nb_jury = points[1],
+                     points_nb_tele = points[2]
+                     )
+  
+  # appending the data frame unless i == 1
+  if (i==1) {data <- tmp_data}
+  else {data <- bind_rows(data, tmp_data)}
+}
+
+data <- data[data$countries_similar != "",]
+
+```
+
+Calculate nb averages
+```{r}
+data$jury_avg_nb <- 0
+data$tele_avg_nb <- 0
+
+for(i in 1:nrow(data)){
+  
+  country_shortname <- data[i,]$country_sn
+  neighbours <- data[i,]$countries_similar
+  neighbours <- strsplit(neighbours, " ")[[1]]
+  
+  points_tele <- data[i,]$points_nb_tele
+  points_jury <- data[i,]$points_nb_jury
+  
+  neighbourhood_votes <- data %>% filter(country_sn %in% neighbours)
+  
+  tele_votes <- mean(c(neighbourhood_votes$points_nb_tele, points_tele), na.rm = T)
+  jury_votes <- mean(c(neighbourhood_votes$points_nb_jury, points_jury), na.rm = T)
+  data[i,]$jury_avg_nb <- jury_votes
+  data[i,]$tele_avg_nb <- tele_votes
+  
+}
+
+write.csv(data, "data/votes_geo_nb.csv")
+```
+
