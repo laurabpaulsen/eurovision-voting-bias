@@ -53,8 +53,6 @@ plot(st_geometry(participants))
 # filter nonexisting countries away
 # votes <- votes %>% filter(!(from_country %in% nonex_countries) | !(to_country %in% nonex_countries)) %>% 
 #   select(year, from_country, to_country)
-
-# we should probably divide neighbour votes with number of times participated
 ```
 
 Find neighborhoods
@@ -101,13 +99,9 @@ int2name <- function(x){
   return(countries)
 }
 nb2 <- lapply(nb2, FUN = int2name)
-
-# assign weight to neighbors - won't work because nb2 is wrong class :(
-#nb2w <- nb2listw(nb2, style = "W", zero.policy = T)
-
-
 ```
 
+Function for calculating neighbour votes
 ```{r}
 points_from_neighbours <- function(country, neighbours, data) {
   
@@ -136,6 +130,7 @@ return_shortname <- function(longname, mapping_data) {
 }
 ```
 
+Calculate points received from neighbours
 ```{r}
 country_names <- names(nb2)
 
@@ -161,6 +156,7 @@ for(i in 1:length(nb2)){
   else {data <- bind_rows(data, tmp_data)}
 }
 
+# remove countries with no neighbours and therefore no neighbour votes
 data <- data[data$countries_similar != "",]
 
 ```
