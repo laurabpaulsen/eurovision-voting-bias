@@ -90,13 +90,13 @@ p
 
 # PLOTS
 ```{r}
-
+library(tmap)
 ```
 
 ```{r}
 countries <- getData("countries")
 
-countries <- st_transform(st_as_sf(countries), crs = 3035)
+countries <- st_transform(st_as_sf(countries), crs = 4087)
 # rename some countries
 countries$NAME_ENGLISH <- gsub("Macedonia", "North Macedonia", countries$NAME_ENGLISH)
 countries$NAME_ENGLISH <- gsub("\\band\\b", "&", countries$NAME_ENGLISH)
@@ -116,11 +116,35 @@ votes <- votes[votes$year >= 2016,]
 
 # isolate countries that have participated in esc
 participants <- countries %>% filter(countries$NAME_ENGLISH %in% votes$from_country)
-rm(countries)
-plot(st_geometry(participants))
+#rm(countries)
+plot(st_geometry(participants[participants$NAME_ENGLISH != "Australia",]))
 
 ```
 
+```{r}
+data <- read_csv("data/votes_cultural_similarity.csv")
+
+participants <- participants %>% left_join(data, by = c("NAME_ENGLISH"="country"))
+
+participants_no_aus <- participants[participants$NAME_ENGLISH != "Australia",]
+
+bbox <- st_bbox(c(xmin = -5037510, xmax = 5000000, ymin = 3076577, ymax=9112196), crs = st_crs(4087))
+
+participants_crop <- st_crop(st_make_valid(participants_no_aus), bbox)
+
+tm_shape(participants_no_aus, bbox = bbox) +
+tm_polygons(col = "points_cult_similar_jury", style = "quantile", n=5) +
+tm_layout(main.title = "Neighbour votes", 
+            bg.color = "lightblue",
+            legend.position = c('RIGHT', 'BOTTOM')) +
+tm_compass(position = c('left', 'TOP'))
+
+tm_shape(participants_crop) +
+tm_polygons(col = "points_cult_similar_jury", style = "quantile", n=5) +
+tm_layout(main.title = "Neighbour votes", 
+            bg.color = "lightblue",
+            legend.position = c('LEFT', 'BOTTOM'))
+```
 
 
 
