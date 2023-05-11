@@ -5,12 +5,125 @@ date: "2023-03-27"
 output: html_document
 ---
 
+```{r}
+pacman::p_load(raster, sf, tidyverse)
+```
+
 
 ```{r}
-cult <- read_csv("data/votes_cultural_similarity.csv")
+average_nbh_points <- function(data){
+  for(i in 1:nrow(data)){
+    neighbours <- data[i,]$countries_similar
+    neighbours <- strsplit(neighbours, " ")[[1]]
+    
+    points_tele <- data[i,]$points_nb_tele
+    points_jury <- data[i,]$points_nb_jury
+    
+    neighbourhood_votes <- data %>% filter(country_sn %in% neighbours)
+    
+    tele_votes <- mean(c(neighbourhood_votes$points_nb_tele, points_tele), na.rm = T)
+    jury_votes <- mean(c(neighbourhood_votes$points_nb_jury, points_jury), na.rm = T)
+    data[i,]$jury_avg_nb <- jury_votes
+    data[i,]$tele_avg_nb <- tele_votes
+    
+    return(data)
+  }
+  
+}
 ```
 
 ```{r}
 
+cult <- read_csv("data/votes_cultural_similarity.csv", show_col_types = FALSE)
+geo <- read_csv("data/votes_geo_nb.csv", show_col_types = FALSE)
+votes <- read_csv("data/votes.csv", show_col_types = FALSE)
+name_map <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
 ```
+
+
+## Linear regression (Moran's I coefficient)
+```{r}
+M <- lm(geo$jury_avg_nb ~ geo$points_nb_jury)
+plot(geo$jury_avg_nb ~ geo$points_nb_jury, pch=20, asp=1, las=1)
+```
+
+## Pseudo p-value
+```{r}
+n <- 599L   # Define the number of simulations
+I.r <- vector(length=n)  # Create an empty vector
+
+tmp_data <- geo
+
+
+for (i in 1:n){
+  # Randomly shuffle income values
+  x <- sample(geo$points_nb_jury, replace=FALSE)
+  tmp_data$points_nb_jury <- x
+  
+  # Compute new set of lagged values
+  tmp_data <- average_nbh_points(tmp_data)
+  x.lag <- tmp_data$jury_avg_nb
+  
+  # Compute the regression slope and store its value
+  M.r    <- lm(x.lag ~ x)
+  I.r[i] <- coef(M.r)[2]
+}
+```
+
+```{r}
+# Plot the histogram of simulated Moran's I values
+# then add our observed Moran's I value to the plot
+hist(I.r, main=NULL, xlab="Moran's I", las=1)
+abline(v=coef(M)[2], col="red")
+```
+
+```{r}
+N.greater <- sum(coef(M)[2] > I.r)
+p <- min(N.greater + 1, n + 1 - N.greater) / (n + 1)
+p
+```
+
+
+
+
+
+
+# PLOTS
+```{r}
+
+```
+
+```{r}
+countries <- getData("countries")
+
+countries <- st_transform(st_as_sf(countries), crs = 3035)
+# rename some countries
+countries$NAME_ENGLISH <- gsub("Macedonia", "North Macedonia", countries$NAME_ENGLISH)
+countries$NAME_ENGLISH <- gsub("\\band\\b", "&", countries$NAME_ENGLISH)
+```
+
+```{r}
+# rename country short names to country names
+votes <- votes %>% 
+  dplyr::left_join(name_map, by = c("from_country_id"="short_name")) %>% 
+  dplyr::left_join(name_map, by = c("to_country_id"="short_name")) %>% 
+  dplyr::mutate(from_country = country.x) %>%
+  dplyr::mutate(to_country = country.y) %>% 
+  dplyr::select(-c(country.x, country.y))
+
+# restrict data to selected years
+votes <- votes[votes$year >= 2016,]
+
+# isolate countries that have participated in esc
+participants <- countries %>% filter(countries$NAME_ENGLISH %in% votes$from_country)
+rm(countries)
+plot(st_geometry(participants))
+
+```
+
+
+
+
+
+
 
