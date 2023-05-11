@@ -15,7 +15,6 @@ pacman::p_load(tidyverse, testit)
 ```{r}
 votes <- read_csv("data/votes.csv", show_col_types = FALSE)
 cultural <- read_csv2("data/cultural_similarity.csv", show_col_types = FALSE)
-contestants <- read_csv("data/contestants.csv", show_col_types = FALSE)
 participants <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
 ```
 
@@ -41,9 +40,10 @@ points_from_neighbours <- function(country, neighbours, data) {
   # get the points given by the neighbours
   points <- points_received %>% filter(from_country_id %in% neighbours)
   
+  n_nbs <- length(neighbours)
   # get sum 
-  points_sum_jury <- sum(points$jury_points) / n_years
-  points_sum_tele <- sum(points$tele_points) / n_years
+  points_sum_jury <- sum(points$jury_points) / n_years / n_nbs
+  points_sum_tele <- sum(points$tele_points) / n_years / n_nbs
   
   cbind(points_sum_jury, points_sum_tele)
 }
@@ -53,13 +53,16 @@ return_shortname <- function(longname, mapping_data) {
   
   shortname[1,1]
 }
+
+
+
 ```
 
 ## Main
 
 ```{r}
 # looping over all participants
-data <- tibble()
+#data <- tibble()
 
 for(i in 1:length(participants$country)){
   country <- participants$country[i]
@@ -68,7 +71,6 @@ for(i in 1:length(participants$country)){
   # looking in both country columns for the given country
   cult1 <- cultural %>% filter(country1 == country)
   cult2 <- cultural %>% filter(country2 == country)
-  
   
   # adding the two data frames together
   cult <- rbind(cult1, cult2)
@@ -88,7 +90,6 @@ for(i in 1:length(participants$country)){
   # points from similar countries
   points <- points_from_neighbours(country_shortname, neighbours, votes)
 
-  
   tmp_data <- tibble(country = country, 
                      country_sn = country_shortname, 
                      countries_similar = paste(neighbours, collapse = ' ', sep = ','),
@@ -107,8 +108,36 @@ for(i in 1:length(participants$country)){
 
 # remove rows with NA
 data <- data %>% filter(countries_similar != 'NA')
+```
 
+
+```{r}
+data$jury_avg_nb <- 0
+data$tele_avg_nb <- 0
+
+
+for(i in 1:nrow(data)){
+  country_shortname <- data[i,]$country_sn
+  neighbours <- data[i,]$countries_similar
+  neighbours <- strsplit(neighbours, " ")[[1]]
+  
+  points_tele <- data[i,]$points_cult_similar_tele
+  points_jury <- data[i,]$points_cult_similar_jury
+  
+  neighbourhood_votes <- data %>% filter(country_sn %in% neighbours)
+  
+  tele_votes <- mean(c(neighbourhood_votes$points_cult_similar_tele, points_tele), na.rm = T)
+  jury_votes <- mean(c(neighbourhood_votes$points_cult_similar_jury, points_jury), na.rm = T)
+  data[i,]$jury_avg_nb <- jury_votes
+  data[i,]$tele_avg_nb <- tele_votes
+  
+}
+```
+
+
+```{r}
 # save to csv
 write.csv(data, "data/votes_cultural_similarity.csv")
 ```
+
 
