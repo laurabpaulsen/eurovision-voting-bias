@@ -164,7 +164,9 @@ p <- pseudo_pval(coef(M)[2], simulated_correlations, n_sim)
 paste("Moran's I coef:", coef(M)[2])
 paste("psuedo_pval:", p)
 ```
+
 # PLOTS
+## Preparing country polygons
 ```{r}
 library(tmap)
 ```
@@ -172,58 +174,42 @@ library(tmap)
 ```{r}
 countries <- getData("countries")
 
-countries <- st_transform(st_as_sf(countries), crs = 4087)
+countries <- st_transform(st_as_sf(countries), crs = 3035)
+
 # rename some countries
 countries$NAME_ENGLISH <- gsub("Macedonia", "North Macedonia", countries$NAME_ENGLISH)
 countries$NAME_ENGLISH <- gsub("\\band\\b", "&", countries$NAME_ENGLISH)
 ```
 
 ```{r}
-# rename country short names to country names
-votes <- votes %>% 
-  dplyr::left_join(name_map, by = c("from_country_id"="short_name")) %>% 
-  dplyr::left_join(name_map, by = c("to_country_id"="short_name")) %>% 
-  dplyr::mutate(from_country = country.x) %>%
-  dplyr::mutate(to_country = country.y) %>% 
-  dplyr::select(-c(country.x, country.y))
+# define bbox and use to crop countries
+bbox <- st_bbox(c(xmin = 2400000, xmax = 8000000, ymin = 1000000, ymax=6000000), crs = st_crs(3035))
 
-# restrict data to selected years
-votes <- votes[votes$year >= 2016,]
+countries_crop <- st_crop(countries, bbox)
 
-# isolate countries that have participated in esc
-participants <- countries %>% filter(countries$NAME_ENGLISH %in% votes$from_country)
-#rm(countries)
-plot(st_geometry(participants[participants$NAME_ENGLISH != "Australia",]))
+# temporarily simplify
+#countries <- st_simplify(st_make_valid(countries), dTolerance=100)
 
+# join geo and cult
+countries_full <- countries_crop %>% 
+                  left_join(geo, by = c("NAME_ENGLISH"="country")) %>% 
+                  left_join(cult, by = c("NAME_ENGLISH"="country")) #%>% 
+                  # mutate(points_nb_jury_round = round(points_nb_jury, 1)) %>% 
+                  # mutate(points_nb_tele_round = round(points_nb_tele, 1)) %>% 
+                  # mutate(points_cult_nb_jury_round = round(points_cult_similar_jury, 1)) %>% 
+                  # mutate(points_cult_nb_tele_round = round(points_cult_similar_tele, 1)) 
 ```
 
+
+## Jury - geo TODO: Make box around legend and round, explain missing countries
 ```{r}
-data <- read_csv("data/votes_cultural_similarity.csv")
-
-participants <- participants %>% left_join(data, by = c("NAME_ENGLISH"="country"))
-
-participants_no_aus <- participants[participants$NAME_ENGLISH != "Australia",]
-
-bbox <- st_bbox(c(xmin = -5037510, xmax = 5000000, ymin = 3076577, ymax=9112196), crs = st_crs(4087))
-
-participants_crop <- st_crop(st_make_valid(participants_no_aus), bbox)
-
-tm_shape(participants_no_aus, bbox = bbox) +
-tm_polygons(col = "points_cult_similar_jury", style = "quantile", n=5) +
-tm_layout(main.title = "Neighbour votes", 
-            bg.color = "lightblue",
-            legend.position = c('RIGHT', 'BOTTOM')) +
-tm_compass(position = c('left', 'TOP'))
-
-tm_shape(participants_crop) +
-tm_polygons(col = "points_cult_similar_jury", style = "quantile", n=5) +
-tm_layout(main.title = "Neighbour votes", 
-            bg.color = "lightblue",
-            legend.position = c('LEFT', 'BOTTOM'))
+tm_shape(countries_full) +
+tm_polygons(col = "points_nb_jury", style = "quantile", n=5) +
+tm_layout(bg.color = "white",
+          legend.position = c('RIGHT', 'TOP'),
+          legend.bg.color = "white") +
+tm_compass(position = c('RIGHT', 'BOTTOM')) +
+tm_scale_bar(position = c('LEFT', 'BOTTOM'))
+  
 ```
-
-
-
-
-
 
