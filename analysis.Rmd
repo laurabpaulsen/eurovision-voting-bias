@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r}
-pacman::p_load(raster, sf, tidyverse)
+pacman::p_load(raster, sf, tidyverse, ggplot2)
 ```
 
 # Moran's I
@@ -74,10 +74,20 @@ pseudo_pval <- function(beta, simulated_betas, n){
   return(p_value)
 }
 
+
+plot_morans_i <- function(data, neibourhood, individual, title){
+  ggplot(data, aes(x = individual, y = neibourhood)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "darkblue") + 
+  ggtitle(title) +
+  theme_light()
+}
+
 ```
 
 ## Calculating Moran's I and pseudo p-value
 ### Jury - Geographical neighbours
+
 ```{r}
 point_column <- "points_nb_jury"
 average_column <- "jury_avg_nb"
@@ -85,8 +95,7 @@ data1 <- geo
 n_sim <- 500
 
 M <- lm(data1[[average_column]] ~ data1[[point_column]])
-plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
-
+plot_morans_i(data1, data1[[average_column]], data1[[point_column]], "Jury, geographical neighbours")
 simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
 
 # Plot the histogram of simulated Moran's I values
@@ -107,8 +116,7 @@ data1 <- geo
 n_sim <- 500
 
 M <- lm(data1[[average_column]] ~ data1[[point_column]])
-plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
-
+plot_morans_i(data1, data1[[average_column]], data1[[point_column]], "Tele, geographical neighbours")
 simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
 
 # Plot the histogram of simulated Moran's I values
@@ -129,7 +137,7 @@ data1 <- cult
 n_sim <- 500
 
 M <- lm(data1[[average_column]] ~ data1[[point_column]])
-plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
+plot_morans_i(data1, data1[[average_column]], data1[[point_column]], "Jury, cultural neighbours")
 
 simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
 
@@ -143,6 +151,7 @@ p <- pseudo_pval(coef(M)[2], simulated_correlations, n_sim)
 paste("Moran's I coef:", coef(M)[2])
 paste("psuedo_pval:", p)
 ```
+
 ### Tele - Cultural neighbours
 ```{r}
 point_column <- "points_cult_similar_tele"
@@ -151,8 +160,7 @@ data1 <- cult
 n_sim <- 500
 
 M <- lm(data1[[average_column]] ~ data1[[point_column]])
-plot(data1[[average_column]] ~ data1[[point_column]], pch=20, asp=1, las=1)
-
+plot_morans_i(data1, data1[[average_column]], data1[[point_column]], "Tele, cultural neighbours")
 simulated_correlations <- simulate(data1, points_col = point_column, n = n_sim)
 
 # Plot the histogram of simulated Moran's I values
