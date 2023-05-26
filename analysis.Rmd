@@ -231,13 +231,13 @@ ggplot() +
   theme(
     strip.background = element_rect(fill='white', color = "lightgray"),
     panel.background = element_rect(fill = '#daeff7'),
-    strip.text = element_text(colour = "black", size = 9),
+    strip.text = element_text(colour = "black", size = 8),
     #panel.spacing = unit(1, "cm"),
     panel.grid.major = element_line(linewidth = 0.01, color = "white"),
     axis.text.x = element_text(size = 5),
     axis.text.y = element_text(size = 5),
     legend.text = element_text(size = 7),
-    legend.title = element_text(size = 9)) 
+    legend.title = element_text(size = 8)) 
   
 
 ggsave("figs/plot.jpg")
