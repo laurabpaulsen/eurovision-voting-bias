@@ -213,7 +213,7 @@ countries_full <- countries_crop %>%
 countries_full_facet <- rbind(countries_full, countries_full, countries_full, countries_full)
 
 # add point type indicator column
-countries_full_facet$plot <- c(rep("Cultural neighbours: Jury",74), rep("Cultural neighbours: Televoters",74), rep("Geographic neighbours: Jury", 74), rep("Geographic neighbours: Televoters", 74))
+countries_full_facet$plot <- c(rep("Cultural neighbours: Jury",74), rep("Cultural neighbours: Televoters",74), rep("Geographic neighbours: Televoters", 74), rep("Geographic neighbours: Jury", 74))
 
 # combine points in same order
 countries_full_facet$points <- c(countries_full$points_cult_similar_jury, countries_full$points_cult_similar_tele, countries_full$points_nb_tele, countries_full$points_nb_jury)
