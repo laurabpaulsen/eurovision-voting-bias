@@ -14,13 +14,14 @@ library(raster)
 library(sf)
 library(tidyverse)
 library(spdep)
+source("preprocessing_functions.R")
 ```
 
 Load data
 ```{r}
 countries <- getData('countries')
-votes <- read_csv("data/votes.csv")
-name_map <- read_csv("data/shortname_mapping.csv")
+votes <- read_csv("data/votes.csv", show_col_types = FALSE)
+name_map <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
 ```
 
 Preprocess data
@@ -37,7 +38,7 @@ votes <- votes %>%
   left_join(name_map, by = c("from_country_id"="short_name")) %>% 
   left_join(name_map, by = c("to_country_id"="short_name")) %>% 
   mutate(from_country = country.x) %>% mutate(to_country = country.y) %>% 
-  select(-c(country.x, country.y))
+  dplyr::select(-c(country.x, country.y))
 
 # restrict data to selected years
 votes <- votes[votes$year >= 2016,]
@@ -57,20 +58,8 @@ plot(st_geometry(participants))
 
 Find neighborhoods
 ```{r}
-participants_no_aus <- participants[participants_simp$NAME_ENGLISH != "Australia",]
+participants_no_aus <- participants[participants$NAME_ENGLISH != "Australia",]
 
-# METHOD 1: distance bands from country centroids
-coords <- st_centroid(st_geometry(participants_no_aus))
-nb <- dnearneigh(coords, d1=0, d2=500000)
-
-# for more easy interpretation substitute integers with country names
-names(nb) <- participants_no_aus$NAME_ENGLISH
-
-int2name <- function(x){
-  countries <- participants_no_aus$NAME_ENGLISH[x]
-  return(countries)
-}
-nb <- lapply(nb, FUN = int2name)
 
 # METHOD 2: manual creation of nb list. Buffers around countries. manually because dnearneigh only takes point coordiantes which makes it difficult to define a distance band that is equal for all countries (500km is not much for the centroid of Russia but very much for e.g. Montenegro)
 # simplify features
@@ -99,35 +88,6 @@ int2name <- function(x){
   return(countries)
 }
 nb2 <- lapply(nb2, FUN = int2name)
-```
-
-Function for calculating neighbour votes
-```{r}
-points_from_neighbours <- function(country, neighbours, data) {
-  
-  # get the points given to the input country
-  points_received <- data %>% filter(to_country_id == country)
-  
-  n_years <- length(unique(points_received$year))
-    
-  # get the points given by the neighbours
-  points <- points_received %>% filter(from_country_id %in% neighbours)
-  
-  # count number of neighbours
-  n_nbs <- length(neighbours)
-  
-  # get sum 
-  points_sum_jury <- sum(points$jury_points) / n_years / n_nbs
-  points_sum_tele <- sum(points$tele_points) / n_years / n_nbs
-  
-  cbind(points_sum_jury, points_sum_tele)
-}
-
-return_shortname <- function(longname, mapping_data) {
-  shortname <- mapping_data[which(mapping_data$country == longname), 1]
-  
-  shortname[1,1]
-}
 ```
 
 Calculate points received from neighbours
@@ -181,7 +141,6 @@ for(i in 1:nrow(data)){
   jury_votes <- mean(c(neighbourhood_votes$points_nb_jury, points_jury), na.rm = T)
   data[i,]$jury_avg_nb <- jury_votes
   data[i,]$tele_avg_nb <- tele_votes
-  
 }
 
 write.csv(data, "data/votes_geo_nb.csv")

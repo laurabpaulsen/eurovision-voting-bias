@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 pacman::p_load(tidyverse, testit)
+source("preprocessing_functions.R")
 ```
 
 # Loading in data
@@ -27,38 +28,6 @@ votes <- votes %>% filter(year >= 2016) %>% filter(round == "final")
 
 
 # Preparing the data frame
-
-## Functions
-```{r}
-points_from_neighbours <- function(country, neighbours, data) {
-  
-  # get the points given to the input country
-  points_received <- data %>% filter(to_country_id == country)
-  
-  n_years <- length(unique(points_received$year))
-    
-  # get the points given by the neighbours
-  points <- points_received %>% filter(from_country_id %in% neighbours)
-  
-  n_nbs <- length(neighbours)
-  # get sum 
-  points_sum_jury <- sum(points$jury_points) / n_years / n_nbs
-  points_sum_tele <- sum(points$tele_points) / n_years / n_nbs
-  
-  cbind(points_sum_jury, points_sum_tele)
-}
-
-return_shortname <- function(longname, mapping_data) {
-  shortname <- mapping_data[which(mapping_data$country == longname), 1]
-  
-  shortname[1,1]
-}
-
-
-
-```
-
-## Main
 
 ```{r}
 # looping over all participants
@@ -109,7 +78,6 @@ for(i in 1:length(participants$country)){
 # remove rows with NA
 data <- data %>% filter(countries_similar != 'NA')
 ```
-
 
 ```{r}
 data$jury_avg_nb <- 0
