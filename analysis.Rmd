@@ -176,85 +176,71 @@ paste("psuedo_pval:", p)
 # PLOTS
 ## Preparing country polygons
 ```{r}
-library(tmap)
-library(RColorBrewer)
+pacman::p_load(tidyverse, ggplot2, tmap,raster, sf, rnaturalearth,rnaturalearthdata,RColorBrewer)
 ```
 
 ```{r}
-countries <- getData("countries")
+cult <- read_csv("data/votes_cultural_similarity.csv", show_col_types = FALSE)
+geo <- read_csv("data/votes_geo_nb.csv", show_col_types = FALSE)
+votes <- read_csv("data/votes.csv", show_col_types = FALSE)
+name_map <- read_csv("data/shortname_mapping.csv", show_col_types = FALSE)
+```
+
+```{r}
+countries <- ne_countries(scale = "medium", returnclass = "sf")
 
 countries <- st_transform(st_as_sf(countries), crs = 3035)
 
 # rename some countries
-countries$NAME_ENGLISH <- gsub("Macedonia", "North Macedonia", countries$NAME_ENGLISH)
-countries$NAME_ENGLISH <- gsub("\\band\\b", "&", countries$NAME_ENGLISH)
-```
+countries$sovereignt <- gsub("Macedonia", "North Macedonia", countries$sovereignt)
+countries$sovereignt <- gsub("\\band\\b", "&", countries$sovereignt)
+countries$sovereignt <- gsub("Republic of Serbia", "Serbia", countries$sovereignt)
 
-```{r}
+
 # define bbox and use to crop countries
 bbox <- st_bbox(c(xmin = 2400000, xmax = 8000000, ymin = 1000000, ymax=6000000), crs = st_crs(3035))
 
 countries_crop <- st_crop(countries, bbox)
 
-# simplify
-countries_crop_simp <- st_simplify(st_make_valid(countries_crop), dTolerance=5000, preserveTopology = TRUE)
-
 # join geo and cult
-countries_full <- countries_crop_simp %>% 
-                  left_join(geo, by = c("NAME_ENGLISH"="country")) %>% 
-                  left_join(cult, by = c("NAME_ENGLISH"="country")) 
+countries_full <- countries_crop %>% 
+                  left_join(geo, by = c("sovereignt"="country")) %>% 
+                  left_join(cult, by = c("sovereignt"="country"))
+
+
 
 # prepare dataframe for facetting
 countries_full_facet <- rbind(countries_full, countries_full, countries_full, countries_full)
 
 # add point type indicator column
-countries_full_facet$plot <- c(rep("Cultural neighbours: Jury",78), rep("Cultural neighbours: Televoters",78), rep("Geographic neighbours: Jury", 78), rep("Geographic neighbours: Televoters", 78))
+countries_full_facet$plot <- c(rep("Cultural neighbours: Jury",74), rep("Cultural neighbours: Televoters",74), rep("Geographic neighbours: Jury", 74), rep("Geographic neighbours: Televoters", 74))
 
 # combine points in same order
 countries_full_facet$points <- c(countries_full$points_cult_similar_jury, countries_full$points_cult_similar_tele, countries_full$points_nb_tele, countries_full$points_nb_jury)
+
 ```
 
-
-## tmap plot, TODO: Explain missing countries
-
-```{r}
-tm_shape(countries_full_facet) +
-tm_polygons(col = "points",
-            palette = '-Spectral',
-            style = "cont",
-            title = 'Neigbour bias score', 
-            border.col = 'white') +
-tm_layout(bg.color = "lightblue",
-          legend.position = c('RIGHT', 'TOP'),
-          legend.bg.color = "white",
-          inner.margins = c(0,0,0,0),
-          panel.labels = c('Cultural neighbours: Jury',
-                           'Cultural neighbours: Televoters',
-                           'Geographic neighbours: Jury',
-                           'Geographic neighbours: Televoters'),
-          fontfamily = 'sans',
-          panel.label.bg.color = 'white',
-          panel.label.size = 1.2) +
-tm_facets("plot", ncol=2,
-          inside.original.bbox = TRUE) +  
-tm_compass(position = c('RIGHT', 'BOTTOM')) +
-tm_scale_bar(position = c('LEFT', 'BOTTOM'))
-```
-
-## ggplot
 
 ```{r}
 ggplot() +
-  geom_sf(data = countries_full_facet, aes(fill=points), color='white', lwd=0.02) +
+  geom_sf(data = countries_full_facet, aes(fill=points), color='black', linewidth=0.05) +
+  coord_sf(expand = FALSE) +
   facet_wrap(.~plot) +
-  theme_bw() +
-  theme(strip.background = element_rect(fill='white'),
-        panel.background = element_rect(fill = 'lightblue'),
-        panel.grid.major = element_line(size = 0.1),
-        axis.text.x = element_text(size=7),
-        axis.text.y = element_text(size=7)) +
-  scale_fill_gradientn(colors = brewer.pal(n=10, name='Spectral')[7:1], na.value = '#bdbfbe', name = "Neighbour bias score") +
-  coord_sf(expand = FALSE)
+  scale_fill_gradient2(midpoint=1, low = "darkgreen", high = "darkred", mid = "lightyellow", na.value ='#bdbfbe', name = "Bias score") +
+  theme_light() + 
+  theme(
+    strip.background = element_rect(fill='white', color = "lightgray"),
+    panel.background = element_rect(fill = '#daeff7'),
+    strip.text = element_text(colour = "black", size = 9),
+    #panel.spacing = unit(1, "cm"),
+    panel.grid.major = element_line(linewidth = 0.01, color = "white"),
+    axis.text.x = element_text(size = 5),
+    axis.text.y = element_text(size = 5),
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 9)) 
+  
+
+ggsave("figs/plot.jpg")
 
 ```
 
