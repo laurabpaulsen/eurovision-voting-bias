@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r}
-pacman::p_load(raster, sf, tidyverse, ggplot2)
+pacman::p_load(tidyverse, ggplot2,sf, rnaturalearth,rnaturalearthdata,RColorBrewer)
 ```
 
 # Moran's I
@@ -175,9 +175,6 @@ paste("psuedo_pval:", p)
 
 # PLOTS
 ## Preparing country polygons
-```{r}
-pacman::p_load(tidyverse, ggplot2, tmap,raster, sf, rnaturalearth,rnaturalearthdata,RColorBrewer)
-```
 
 ```{r}
 cult <- read_csv("data/votes_cultural_similarity.csv", show_col_types = FALSE)
