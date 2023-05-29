@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse, testit)
+pacman::p_load(tidyverse)
 source("preprocessing_functions.R")
 ```
 
